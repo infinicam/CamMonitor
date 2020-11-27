@@ -25,6 +25,7 @@ CLiveTab::CLiveTab(CWnd* pParent)
 	, m_xvFanState(FALSE)
 	, m_xvExposeOn(0)
 	, m_xvExposeOff(0)
+	, m_csvFile(nullptr)
 {
 }
 
@@ -121,21 +122,37 @@ void CLiveTab::StartRec()
 	m_nRecFrameCount = 0;
 
 	CDefaultParams& df = ((CCamMonitorApp*)AfxGetApp())->GetDefaultParams();
+	if (df.cameraSaveFileType == SAVE_FILE_TYPE_RAW)
+	{
+		CString filepath;
+		filepath.Format(_T("%s\\%s.mdat"), (LPCTSTR)df.cameraSaveFolderPath, (LPCTSTR)df.cameraSaveFileName);
+
+		FILE* fp = NULL;
+		errno_t error = _tfopen_s(&fp, filepath, _T("wbS"));
+		if (!fp || error != 0)
+		{
+			TRACE(_T("fopen error\n"));
+		}
+		else
+		{
+			m_mdatFile = fp;
+		}
+	}
 	if (df.cameraSaveFileType == SAVE_FILE_TYPE_CSV)
 	{
 		CString filepath;
 		filepath.Format(_T("%s\\%s.csv"), (LPCTSTR)df.cameraSaveFolderPath, (LPCTSTR)df.cameraSaveFileName);
 
 		FILE* fp = NULL;
-		errno_t error = _tfopen_s(&fp, filepath, _T("a"));
-		if (error != 0)
+		errno_t error = _tfopen_s(&fp, filepath, _T("w"));
+		if (!fp || error != 0)
 		{
 			TRACE(_T("fopen error\n"));
 		}
 		else
 		{
 			_ftprintf(fp, _T("Frame No,Sequence No,Difference from previous frame,Drop\n"));
-			fclose(fp);
+			m_csvFile = fp;
 		}
 	}
 
@@ -158,6 +175,16 @@ void CLiveTab::StopRec()
 		{
 			WriteCIH();
 		}
+
+		if (m_csvFile) {
+			fclose(m_csvFile);
+			m_csvFile = nullptr;
+		}
+
+		if (m_mdatFile) {
+			fclose(m_mdatFile);
+			m_mdatFile = nullptr;
+		}
 	}
 	else
 	{
@@ -174,7 +201,7 @@ void CLiveTab::WriteCIH()
 	PUC_GetFramerateShutter(m_camera.GetHandle(), &cih.m_framerate, &cih.m_shutterFps);
 	PUC_GetExposeTime(m_camera.GetHandle(), &cih.m_exposeOn, &cih.m_exposeOff);
 	PUC_GetResolution(m_camera.GetHandle(), &cih.m_width, &cih.m_height);
-	PUC_GetXferDataSize(m_camera.GetHandle(), PUC_DATA_COMPRESS, &cih.m_frameSize);
+	PUC_GetXferDataSize(m_camera.GetHandle(), PUC_DATA_COMPRESSED, &cih.m_frameSize);
 	cih.m_frameCount = m_nRecFrameCount;
 	memcpy(cih.m_quantization, m_camera.GetQuantization(), sizeof(cih.m_quantization));
 	cih.m_filetype = df.cameraSaveFileType;
@@ -237,46 +264,31 @@ void CLiveTab::ContinuousProc(PPUC_XFER_DATA_INFO pInfo)
 	if (*pRec)
 	{
 		CDefaultParams& df = ((CCamMonitorApp*)AfxGetApp())->GetDefaultParams();
-		CString filepath;
 		FILE* fp = NULL;
 		errno_t error;
 		static INT32 nPreSeqNo = 0;
 
 		if (df.cameraSaveFileType == SAVE_FILE_TYPE_RAW)
 		{
-			if (pInfo->nSequenceNo != nPreSeqNo)
-			{
-				filepath.Format(_T("%s\\%s%09lld.dat"), (LPCTSTR)df.cameraSaveFolderPath, (LPCTSTR)df.cameraSaveFileName, m_nRecFrameCount);
+			fp = m_mdatFile;
 
-				error = _tfopen_s(&fp, filepath, _T("wb"));
-				if (error != 0)
-				{
-					TRACE(_T("fopen error\n"));
-				}
-				else
-				{
-					fwrite(pInfo->pData, pInfo->nDataSize, 1, fp);
-					fclose(fp);
-					m_nRecFrameCount++;
-				}
+			if (fp)
+			{
+				fwrite(pInfo->pData, pInfo->nDataSize, 1, fp);
+				m_nRecFrameCount++;
 			}
 		}
 		else if (df.cameraSaveFileType == SAVE_FILE_TYPE_CSV)
 		{
-			filepath.Format(_T("%s\\%s.csv"), (LPCTSTR)df.cameraSaveFolderPath, (LPCTSTR)df.cameraSaveFileName);
-		
-			error = _tfopen_s(&fp, filepath, _T("a"));
-			if (error != 0)
-			{
-				TRACE(_T("fopen error\n"));
-			}
-			else
+			fp = m_csvFile;
+
+			if (fp)
 			{
 				if ((pInfo->nSequenceNo - nPreSeqNo) == 0 || (pInfo->nSequenceNo - nPreSeqNo) == 1)
 					_ftprintf(fp, _T("%lld,%d,%d\n"), m_nRecFrameCount, pInfo->nSequenceNo, pInfo->nSequenceNo - nPreSeqNo);
 				else
 					_ftprintf(fp, _T("%lld,%d,%d,*\n"), m_nRecFrameCount, pInfo->nSequenceNo, pInfo->nSequenceNo - nPreSeqNo);
-				fclose(fp);
+
 				m_nRecFrameCount++;
 			}
 		}

@@ -75,6 +75,8 @@ private:
 
 	// recording
 	LockBuffer m_lockRec;
+	FILE* m_csvFile;
+	FILE* m_mdatFile;
 	INT64 m_nRecFrameCount;
 
 	// controls

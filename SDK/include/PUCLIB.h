@@ -96,10 +96,10 @@ typedef enum
 {
 	/*! @~english  @brief Transfer compressed data
 		@~japanese @brief 圧縮データ転送 */
-	PUC_DATA_COMPRESS = 0,
-	/*! @~english  @brief Transfer pixel data
-		@~japanese @brief ピクセルデータ転送 */
-	PUC_DATA_RGB = 1,
+	PUC_DATA_COMPRESSED = 0,
+	/*! @~english  @brief Transfer decompressed data(gray)
+		@~japanese @brief 展開済みのデータ転送(グレー) */
+	PUC_DATA_DECOMPRESSED_GRAY = 1,
 } PUC_DATA_MODE;
 
 
@@ -251,8 +251,8 @@ typedef struct
 */
 typedef struct
 {
-	/*! @~english  @brief Location for unpacked transfer data. It is necessary to allocate the required amount in advance. The mode of transfer data depends on the transfer data mode setting (COMPRESS/RGB).
-		@~japanese @brief 転送データの展開先。あらかじめ必要量確保しておく必要あり。転送されるデータは転送データモード(COMPRESS/RGB)に依存する */
+	/*! @~english  @brief Location for unpacked transfer data. It is necessary to allocate the required amount in advance. The mode of transfer data depends on the transfer data mode setting (COMPRESSED/DECOMPRESSED).
+		@~japanese @brief 転送データの展開先。あらかじめ必要量確保しておく必要あり。転送されるデータは転送データモード(COMPRESSED/DECOMPRESSED)に依存する */
 	PUINT8 pData;
 	/*! @~english  @brief The size of transfer data. Stores the size of transfer data.
 		@~japanese @brief 転送データのサイズ。転送されたデータのサイズが格納される */
@@ -621,6 +621,8 @@ PUCRESULT WINAPI PUC_GetSyncInMode(PUC_HANDLE hDevice, PUC_SYNC_MODE* pMode);
 	@~english
 		@brief This sets the synchronous signal input mode for the device.
 		@details Restarting the device will reset this setting. @n Changing the synchronization signal output mode resets the output magnification rate to x1.
+				 @n When setting to external device synchronization, the exposure time is automatically adjusted considering the variation of external devices.
+				 Set the exposure time and framerate before setting the external device synchronization.
 		@param[in] hDevice The device handle to be controlled
 		@param[in] nMode The synchronous signal input mode (Internal/External)
 		@return If successful, PUC_SUCCEEDED will be returned. If failed, other responses will be returned.
@@ -629,6 +631,7 @@ PUCRESULT WINAPI PUC_GetSyncInMode(PUC_HANDLE hDevice, PUC_SYNC_MODE* pMode);
 	@~japanese
 		@brief デバイスの同期信号入力モードを設定します。
 		@details デバイスを再起動すると設定はリセットされます。@n同期信号入力モードを変えると出力倍率はx1倍に戻ります。
+				 @n外部機器同期設定時、外部機器のばらつきを考慮した露光時間へ自動で調整されます。あらかじめ撮影したい露光時間と撮影速度に変更してから、外部機器同期を設定してください。
 		@param[in] hDevice 操作対象のデバイスハンドル
 		@param[in] nMode 同期信号入力モード（Internal／External）
 		@return 成功時はPUC_SUCCEEDED、失敗時はそれ以外が返ります。
@@ -942,7 +945,7 @@ PUCRESULT WINAPI PUC_GetMaxXferDataSize(PUC_HANDLE hDevice, PUC_DATA_MODE nDataM
 			Compressed data can be unpacked to pixel data with PUC_DecodeData.
 		@param[in] hDevice The device handle to be controlled
 		@param[out] pXferData The storage destination for transfer data. Retrieve the required memory size with PUC_GetXferDataSize. @n
-			When using PUC_DATA_RGB, a size rounded up to a multiple of 4 must be allocated for the width.
+			When using PUC_DATA_DECOMPRESSED_GRAY, a size rounded up to a multiple of 4 must be allocated for the width.
 		@return If successful, PUC_SUCCEEDED will be returned. If failed, other responses will be returned.
 		@note This function is thread-safe.
 		@see PUC_GetXferDataSize
@@ -955,7 +958,7 @@ PUCRESULT WINAPI PUC_GetMaxXferDataSize(PUC_HANDLE hDevice, PUC_DATA_MODE nDataM
 			圧縮データはPUC_DecodeDataを使用することでピクセルデータに展開できます。
 		@param[in] hDevice 操作対象のデバイスハンドル
 		@param[out] pXferData 転送データの格納先。必要なメモリサイズはPUC_GetXferDataSizeで取得してください。@n
-			PUC_DATA_RGBの場合、横幅は4の倍数に切り上げたサイズ分確保されている必要があります。
+			PUC_DATA_DECOMPRESSED_GRAYの場合、横幅は4の倍数に切り上げたサイズ分確保されている必要があります。
 		@return 成功時はPUC_SUCCEEDED、失敗時はそれ以外が返ります。
 		@note 本関数はスレッドセーフです。
 		@see PUC_GetXferDataSize
@@ -1082,6 +1085,38 @@ PUCRESULT WINAPI PUC_ExtractSequenceNo(const PUCHAR pData, UINT32 nWidth, UINT32
 		@see PUC_GetMaxXferDataSize
 */
 PUCRESULT WINAPI PUC_DecodeData(PUINT8 pDst, UINT32 nX, UINT32 nY, UINT32 nWidth, UINT32 nHeight, UINT32 nLineBytes, const PUINT8 pSrc, const PUSHORT pQVals);
+
+/*!
+	@~english
+		@brief This unpacks the compressed image data to pixel data.
+		@param[out] pDst The buffer at the unpacking destination. The size of the width must be allocated rounded up to a multiple of four. (e.g., If the width is 1246 px, a buffer is required 1248 bytes at least)
+		@param[in] nX The upper left coordinate X for starting unpacking. This must be 0, or a multiple of 8.
+		@param[in] nY The upper left coordinate Y for starting unpacking. This must be 0, or a multiple of 8.
+		@param[in] nWidth The width for unpacking
+		@param[in] nHeight The height for unpacking
+		@param[in] nLineBytes The number of bytes of the buffer width at the unpacking destination
+		@param[in] pSrc The compressed image data
+		@param[in] pQVals A quantization table
+		@return If successful, PUC_SUCCEEDED will be returned. If failed, other responses will be returned.
+		@note This function is thread-safe. This function can be executed in parallel.
+		@see PUC_GetXferDataSize
+		@see PUC_GetMaxXferDataSize
+	@~japanese
+		@brief 圧縮画像データをピクセルデータに展開します。
+		@param[out] pDst 展開先バッファ。横幅は4の倍数に切り上げたサイズ分確保されている必要があります。（例：横幅が1246pxの場合、バッファは1248バイト確保されている必要あり）
+		@param[in] nX 展開開始する左上座標X。0もしくは8の倍数である必要があります。
+		@param[in] nY 展開開始する左上座標Y。0もしくは8の倍数である必要があります。
+		@param[in] nWidth 展開する横幅
+		@param[in] nHeight 展開する高さ
+		@param[in] nLineBytes 展開先バッファの横幅のバイト数
+		@param[in] pSrc 圧縮画像データ
+		@param[in] pQVals 量子化テーブル
+		@return 成功時はPUC_SUCCEEDED、失敗時はそれ以外が返ります。
+		@note 本関数はスレッドセーフです。本関数は並列実行が可能です。
+		@see PUC_GetXferDataSize
+		@see PUC_GetMaxXferDataSize
+*/
+PUCRESULT WINAPI PUC_DecodeDCTData(PINT16 pDst, UINT32 nX, UINT32 nY, UINT32 nWidth, UINT32 nHeight, UINT32 nLineBytes, const PUINT8 pSrc, const PUSHORT pQVals);
 
 /*!
 	@~english

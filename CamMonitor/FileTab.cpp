@@ -161,12 +161,13 @@ BOOL CFileTab::ReadDataFile(UINT32 nFrameNo)
 
 	if (m_cih.m_filetype == SAVE_FILE_TYPE_RAW)
 	{
-		filePath.Format(_T("%s\\%s%09lld.dat"), (LPCTSTR)m_cih.m_dirpath, (LPCTSTR)m_cih.m_filename, (INT64)nFrameNo);
+		filePath.Format(_T("%s\\%s.mdat"), (LPCTSTR)m_cih.m_dirpath, (LPCTSTR)m_cih.m_filename);
 		FILE* fp = NULL;
 		errno_t error = _tfopen_s(&fp, filePath, _T("rb"));
 		if (error != 0)
 			return FALSE;
-
+		INT64 offset = (INT64)m_cih.m_frameSize * nFrameNo;
+		_fseeki64(fp, offset, SEEK_SET);
 		fread(m_pData, m_cih.m_frameSize, 1, fp);
 		fclose(fp);
 	}

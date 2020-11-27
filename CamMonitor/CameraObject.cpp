@@ -68,7 +68,7 @@ void CCameraObject::CloseDevice()
 void CCameraObject::UpdateBuffer()
 {
 	UINT32 nBufSize = 0;
-	PUC_GetXferDataSize(m_hDevice, PUC_DATA_COMPRESS , &nBufSize);
+	PUC_GetXferDataSize(m_hDevice, PUC_DATA_COMPRESSED , &nBufSize);
 
 	m_bufSingle.Create(nBufSize);
 	m_bufContinuous.Create(nBufSize);
