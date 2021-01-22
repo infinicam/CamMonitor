@@ -46,7 +46,7 @@ typedef enum
 	IMAGE_QUALITY_NORMAL = 0,
 	IMAGE_QUALITY_LOW = 1,
 	IMAGE_QUALITY_HIGH = 2,
-} IMAGE_QUALITY;
+} QUANTIZATION_MODE;
 
 // Macro
 #define GET_VIEW() (AfxGetMainWnd() ? ((CFrameWnd*)AfxGetMainWnd())->GetActiveView() : NULL);

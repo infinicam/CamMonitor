@@ -36,7 +36,7 @@ public:
 
 	void UpdateBuffer();
 
-	PUCRESULT SetImageQuality(IMAGE_QUALITY quality);
+	PUCRESULT SetQuantization(QUANTIZATION_MODE quantization);
 
 	PUSHORT GetQuantization() { return m_q; }
 

@@ -127,30 +127,30 @@ PUCRESULT CCameraObject::StopLive()
 	return result;
 }
 
-PUCRESULT CCameraObject::SetImageQuality(IMAGE_QUALITY quality)
+PUCRESULT CCameraObject::SetQuantization(QUANTIZATION_MODE quantization)
 {
 	PUCRESULT result = PUC_SUCCEEDED;
 
-	switch (quality)
+	switch (quantization)
 	{
 	case IMAGE_QUALITY_NORMAL:
-		for (int i = 0; i < PUC_Q_COUNT; i++)
-		{
-			m_q[i] = m_baseQ[i] * 1;
-			PUC_SetQuantization(m_hDevice, i, m_q[i]);
-		}
-		break;
-	case IMAGE_QUALITY_LOW:
 		for (int i = 0; i < PUC_Q_COUNT; i++)
 		{
 			m_q[i] = m_baseQ[i] * 2;
 			PUC_SetQuantization(m_hDevice, i, m_q[i]);
 		}
 		break;
+	case IMAGE_QUALITY_LOW:
+		for (int i = 0; i < PUC_Q_COUNT; i++)
+		{
+			m_q[i] = m_baseQ[i] * 4;
+			PUC_SetQuantization(m_hDevice, i, m_q[i]);
+		}
+		break;
 	case IMAGE_QUALITY_HIGH:
 		for (int i = 0; i < PUC_Q_COUNT; i++)
 		{
-			m_q[i] = m_baseQ[i] >> 1;
+			m_q[i] = m_baseQ[i] * 1;
 			PUC_SetQuantization(m_hDevice, i, m_q[i]);
 		}
 		break;

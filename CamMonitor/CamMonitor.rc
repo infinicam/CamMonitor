@@ -95,8 +95,8 @@ BEGIN
     EDITTEXT        IDC_SYNC_OUT_WIDTH,129,203,45,14,ES_AUTOHSCROLL | ES_NUMBER
     LTEXT           "Magnification:",IDC_STATIC,90,223,48,8
     COMBOBOX        IDC_SYNC_OUT_MAGNIFICATION,144,222,48,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
-    LTEXT           "Image Quality",IDC_STATIC,24,248,66,8
-    COMBOBOX        IDC_IMAGE_QUALITY,90,246,108,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    LTEXT           "Quantization",IDC_STATIC,24,248,66,8
+    COMBOBOX        IDC_QUANTIZATION,90,246,108,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
     LTEXT           "Decode Position",IDC_STATIC,24,270,66,8
     LTEXT           "X:",IDC_STATIC,92,270,14,8
     EDITTEXT        IDC_DECODE_POS_X,106,268,32,14,ES_AUTOHSCROLL | ES_NUMBER
@@ -479,8 +479,8 @@ END
 //
 
 VS_VERSION_INFO VERSIONINFO
- FILEVERSION 1,0,0,0
- PRODUCTVERSION 1,0,0,0
+ FILEVERSION 1,2,0,0
+ PRODUCTVERSION 1,2,0,0
  FILEFLAGSMASK 0x3fL
 #ifdef _DEBUG
  FILEFLAGS 0x1L
@@ -497,12 +497,12 @@ BEGIN
         BEGIN
             VALUE "CompanyName", "PHOTRON LIMITED"
             VALUE "FileDescription", "CamMonitor"
-            VALUE "FileVersion", "1.0.0.0"
+            VALUE "FileVersion", "1.2.0.0"
             VALUE "InternalName", "CamMonitor.exe"
             VALUE "LegalCopyright", "Copyright (C) 2020 PHOTRON LIMITED"
             VALUE "OriginalFilename", "CamMonitor.exe"
             VALUE "ProductName", "Photron USB Control SDK Sample Application"
-            VALUE "ProductVersion", "1.0.0.0"
+            VALUE "ProductVersion", "1.2.0.0"
         END
     END
     BLOCK "VarFileInfo"

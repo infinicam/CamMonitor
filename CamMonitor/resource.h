@@ -79,9 +79,9 @@
 #define IDC_SYNC_OUT_MAGNIFICATION      1016
 #define IDC_FILE_FRAMERATE              1017
 #define IDC_EDIT_TIMEOUT                1017
-#define IDC_IMAGE_QUALITY               1017
 #define IDC_EDIT_TRANSFER_TIMEOUT       1017
 #define IDC_EDIT_SINGLE_XFER_TIMEOUT    1017
+#define IDC_QUANTIZATION                1017
 #define IDC_SEQ_NO                      1018
 #define IDC_EDIT_STM_COUNT              1018
 #define IDC_FOLDERPATH2                 1018

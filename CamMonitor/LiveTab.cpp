@@ -48,7 +48,7 @@ void CLiveTab::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_SYNC_OUT_MAGNIFICATION, m_comboSyncOutMag);
 	DDX_Check(pDX, IDC_LED_MODE, m_xvLEDMode);
 	DDX_Check(pDX, IDC_FAN_CTRL, m_xvFanState);
-	DDX_Control(pDX, IDC_IMAGE_QUALITY, m_comboImgQuality);
+	DDX_Control(pDX, IDC_QUANTIZATION, m_comboQuantization);
 	DDX_Text(pDX, IDC_EXPOSE_ON, m_xvExposeOn);
 	DDX_Text(pDX, IDC_EXPOSE_OFF, m_xvExposeOff);
 	DDX_Text(pDX, IDC_DECODE_POS_X, m_xvDecodePos.x);
@@ -341,7 +341,7 @@ void CLiveTab::UpdateControlState()
 	GetDlgItem(IDC_SYNC_OUT_MAGNIFICATION)->EnableWindow(bOpened && !bContinuous && !bExternal);
 	GetDlgItem(IDC_LED_MODE)->EnableWindow(bOpened && !bContinuous);
 	GetDlgItem(IDC_FAN_CTRL)->EnableWindow(bOpened && !bContinuous);
-	GetDlgItem(IDC_IMAGE_QUALITY)->EnableWindow(bOpened && !bContinuous);
+	GetDlgItem(IDC_QUANTIZATION)->EnableWindow(FALSE);
 	GetDlgItem(IDC_EXPOSE_ON)->EnableWindow(bOpened && !bContinuous);
 	GetDlgItem(IDC_EXPOSE_OFF)->EnableWindow(bOpened && !bContinuous);
 	GetDlgItem(IDC_DECODE_POS_X)->EnableWindow(bOpened && !bContinuous);
@@ -573,32 +573,32 @@ void CLiveTab::UpdateFANCtrlCheckBox()
 	UpdateData(FALSE);
 }
 
-void CLiveTab::UpdateImgQualityComboBox()
+void CLiveTab::UpdateQuantization()
 {
 	CString s;
 
-	int nCurSel = m_comboImgQuality.GetCurSel();
+	int nCurSel = m_comboQuantization.GetCurSel();
 	if (nCurSel == CB_ERR)
 		nCurSel = 0;
 
-	m_comboImgQuality.ResetContent();
+	m_comboQuantization.ResetContent();
 
 	if (!IsCameraOpened())
 		return;
 
 	s.LoadString(IDS_QUALITY_NORMAL);
-	m_comboImgQuality.AddString(s);
-	m_comboImgQuality.SetItemData(m_comboImgQuality.GetCount() - 1, IMAGE_QUALITY_NORMAL);
+	m_comboQuantization.AddString(s);
+	m_comboQuantization.SetItemData(m_comboQuantization.GetCount() - 1, IMAGE_QUALITY_NORMAL);
 
 	s.LoadString(IDS_QUALITY_LOW);
-	m_comboImgQuality.AddString(s);
-	m_comboImgQuality.SetItemData(m_comboImgQuality.GetCount() - 1, IMAGE_QUALITY_LOW);
+	m_comboQuantization.AddString(s);
+	m_comboQuantization.SetItemData(m_comboQuantization.GetCount() - 1, IMAGE_QUALITY_LOW);
 
 	s.LoadString(IDS_QUALITY_HIGH);
-	m_comboImgQuality.AddString(s);
-	m_comboImgQuality.SetItemData(m_comboImgQuality.GetCount() - 1, IMAGE_QUALITY_HIGH);
+	m_comboQuantization.AddString(s);
+	m_comboQuantization.SetItemData(m_comboQuantization.GetCount() - 1, IMAGE_QUALITY_HIGH);
 
-	m_comboImgQuality.SetCurSel(nCurSel);
+	m_comboQuantization.SetCurSel(m_comboQuantization.GetCount() - 1);
 }
 
 void CLiveTab::UpdateExposeTime()
@@ -689,7 +689,7 @@ BEGIN_MESSAGE_MAP(CLiveTab, CBaseTab)
 	ON_CBN_SELCHANGE(IDC_SYNC_OUT_MAGNIFICATION, &CLiveTab::OnCbnSelchangeSyncOutMag)
 	ON_BN_CLICKED(IDC_LED_MODE, &CLiveTab::OnBnClickedLEDMode)
 	ON_BN_CLICKED(IDC_FAN_CTRL, &CLiveTab::OnBnClickedFANCtrl)
-	ON_CBN_SELCHANGE(IDC_IMAGE_QUALITY, &CLiveTab::OnCbnSelchangeImgQuality)
+	ON_CBN_SELCHANGE(IDC_QUANTIZATION, &CLiveTab::OnCbnSelchangeQuantization)
 	ON_EN_KILLFOCUS(IDC_EXPOSE_ON, &CLiveTab::OnEnKillfocusExposeOn)
 	ON_EN_KILLFOCUS(IDC_EXPOSE_OFF, &CLiveTab::OnEnKillfocusExposeOff)
 	ON_EN_KILLFOCUS(IDC_DECODE_POS_X, &CLiveTab::OnEnKillfocusDecodePos)
@@ -775,7 +775,7 @@ EXIT_LABEL:
 	UpdateSyncOutMagComboBox();
 	UpdateLEDModeCheckBox();
 	UpdateFANCtrlCheckBox();
-	UpdateImgQualityComboBox();
+	UpdateQuantization();
 	UpdateExposeTime();
 	ResetDecodePos();
 
@@ -1053,15 +1053,15 @@ void CLiveTab::OnBnClickedFANCtrl()
 	UpdateControlState();
 }
 
-void CLiveTab::OnCbnSelchangeImgQuality()
+void CLiveTab::OnCbnSelchangeQuantization()
 {
-	IMAGE_QUALITY quality = (IMAGE_QUALITY)m_comboImgQuality.GetItemData(m_comboImgQuality.GetCurSel());
+	QUANTIZATION_MODE q = (QUANTIZATION_MODE)m_comboQuantization.GetItemData(m_comboQuantization.GetCurSel());
 	PUCRESULT result;
 	CString msg;
 
 	StopLive();
 
-	result = m_camera.SetImageQuality(quality);
+	result = m_camera.SetQuantization(q);
 	if (PUC_CHK_FAILED(result))
 	{
 		msg.FormatMessage(IDS_ERROR_CODE, _T("PUC_SetQuantization"), result);

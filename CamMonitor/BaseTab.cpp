@@ -45,3 +45,21 @@ LRESULT CBaseTab::OnUpdateView(WPARAM, LPARAM)
 	pView->Invalidate(FALSE);
 	return 0;
 }
+
+BOOL CBaseTab::PreTranslateMessage(MSG* pMsg)
+{
+	if (WM_KEYDOWN == pMsg->message)
+	{
+		switch (pMsg->wParam)
+		{
+		case VK_RETURN:
+			pMsg->wParam = VK_TAB;
+			break;
+		case VK_ESCAPE:
+			return FALSE;
+		default:
+			break;
+		}
+	}
+	return CDialog::PreTranslateMessage(pMsg);
+}

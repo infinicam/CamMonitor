@@ -61,7 +61,7 @@ protected:
 	void UpdateSyncOutMagComboBox();
 	void UpdateLEDModeCheckBox();
 	void UpdateFANCtrlCheckBox();
-	void UpdateImgQualityComboBox();
+	void UpdateQuantization();
 	void UpdateExposeTime();
 
 	void SetExposeTime();
@@ -92,7 +92,7 @@ private:
 	CComboBox m_comboSyncOutMag;
 	BOOL m_xvLEDMode;
 	BOOL m_xvFanState;
-	CComboBox m_comboImgQuality;
+	CComboBox m_comboQuantization;
 	int m_xvExposeOn;
 	int m_xvExposeOff;
 	CPoint m_xvDecodePos;
@@ -122,7 +122,7 @@ public:
 	afx_msg void OnCbnSelchangeSyncOutMag();
 	afx_msg void OnBnClickedLEDMode();
 	afx_msg void OnBnClickedFANCtrl();
-	afx_msg void OnCbnSelchangeImgQuality();
+	afx_msg void OnCbnSelchangeQuantization();
 	afx_msg void OnEnKillfocusExposeOn();
 	afx_msg void OnEnKillfocusExposeOff();
 	afx_msg void OnEnKillfocusDecodePos();

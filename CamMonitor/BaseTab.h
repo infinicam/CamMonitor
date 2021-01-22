@@ -28,6 +28,7 @@ protected:
 
 protected:
 	virtual void DoDataExchange(CDataExchange* pDX);    // DDX/DDV support
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
 
 	DECLARE_MESSAGE_MAP()
 	afx_msg LRESULT OnInitDialog(WPARAM wParam, LPARAM lParam);
